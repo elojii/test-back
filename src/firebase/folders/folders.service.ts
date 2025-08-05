@@ -54,4 +54,16 @@ export class FirebaseFoldersService {
       ...doc.data(),
     }));
   }
+
+  public async getCollaboratedFolders(userId: string) {
+    const snapshot = await this.firestore
+      .collection(this.collectionName)
+      .where('collaboratorUserIds', 'array-contains', userId)
+      .get();
+
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  }
 }

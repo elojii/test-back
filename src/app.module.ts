@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { FirebaseModule } from './firebase/firebase.module';
 import { ConfigModule } from '@nestjs/config';
 import { FoldersModule } from './folders/folders.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { FoldersModule } from './folders/folders.module';
     }),
     FirebaseModule,
     FoldersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

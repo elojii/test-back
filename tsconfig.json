@@ -16,7 +16,8 @@
     "baseUrl": "./src",
     "paths": {
       "@firebase/*": ["firebase/*"],
-      "@folders/*": ["folders/*"]
+      "@folders/*": ["folders/*"],
+      "@filestack/*": ["filestack/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

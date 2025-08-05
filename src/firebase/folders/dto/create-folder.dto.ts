@@ -1,5 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateFolderDto {
   @IsNotEmpty()
@@ -9,4 +14,10 @@ export class CreateFolderDto {
   @IsOptional()
   @IsString()
   parentId?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @IsEmail({}, { each: true })
+  collaboratorEmails?: string[];
 }
