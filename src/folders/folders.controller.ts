@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Query, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Patch,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import {
   CreateFolderDto,
   EditFolderDto,
@@ -16,8 +25,10 @@ export class FoldersController {
   @Post('create-folder')
   public async create(@Body() folderDto: CreateFolderDto) {
     try {
+      console.log('folderDto', folderDto.collaborators);
+
       const transformedCollaborators =
-        await this.authService.getUsersFromEmails(
+        await this.authService.getCollaboratorsFromEmails(
           folderDto.collaborators?.map((collaborator) => collaborator.email),
         );
 
@@ -48,19 +59,24 @@ export class FoldersController {
   }
 
   @Patch('move-folder')
-  async moveFolder(
+  public async moveFolder(
     @Body() body: { folderId: string; newParentId: string; userId: string },
   ) {
     return this.foldersService.moveFolder(body.folderId, body.newParentId);
   }
 
   @Patch('edit-folder')
-  async editFolder(@Body() folderDto: EditFolderDto) {
+  public async editFolder(@Body() folderDto: EditFolderDto) {
     return this.foldersService.editFolder(
       folderDto.id,
       folderDto.name,
       folderDto.collaborators,
     );
+  }
+
+  @Delete('delete/:id')
+  public async deleteFolder(@Param('id') id: string) {
+    return this.foldersService.deleteFolder(id);
   }
 
   @Get('test')

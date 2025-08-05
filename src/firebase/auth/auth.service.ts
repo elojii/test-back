@@ -1,6 +1,8 @@
+import { Collaborator } from '@firebase/folders/dto/folder.dto';
 import { Inject, Injectable } from '@nestjs/common';
 
 import * as admin from 'firebase-admin';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class FirebaseAuthService {
@@ -8,9 +10,9 @@ export class FirebaseAuthService {
     @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
   ) {}
 
-  public async getUsersFromEmails(
+  public async getCollaboratorsFromEmails(
     emails?: string[],
-  ): Promise<{ userId: string; email: string }[]> {
+  ): Promise<Collaborator[]> {
     if (!emails || emails.length === 0) return [];
 
     const auth = this.firebaseAdmin.auth();
@@ -27,6 +29,6 @@ export class FirebaseAuthService {
     // Filter out nulls and return only the uid
     return users
       .filter((user): user is admin.auth.UserRecord => user !== null)
-      .map((user) => ({ userId: user.uid, email: user.email! }));
+      .map((user) => ({ userId: user.uid, email: user.email!, id: uuidv4() }));
   }
 }

@@ -6,6 +6,7 @@ export interface FirebaseFolderSchema {
 }
 
 export interface Collaborator {
+  id: string;
   userId: string;
   email: string;
 }

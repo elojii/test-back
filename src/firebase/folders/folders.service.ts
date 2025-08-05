@@ -80,6 +80,7 @@ export class FirebaseFoldersService {
     const updatedFolder = (await folderRef.get()).data();
     return updatedFolder;
   }
+
   public async editFolder(
     folderId: string,
     name: string,
@@ -102,5 +103,16 @@ export class FirebaseFoldersService {
 
     const updatedSnapshot = await folderRef.get();
     return updatedSnapshot.data();
+  }
+
+  public async deleteFolder(folderId: string): Promise<void> {
+    const folderRef = this.firestore.collection('folders').doc(folderId);
+    const folderDoc = await folderRef.get();
+
+    if (!folderDoc.exists) {
+      throw new Error(`Folder with ID '${folderId}' not found`);
+    }
+
+    await folderRef.delete();
   }
 }

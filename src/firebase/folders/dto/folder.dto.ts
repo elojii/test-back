@@ -7,14 +7,19 @@ import {
   IsString,
 } from 'class-validator';
 
-class Collaborator {
+export class Collaborator {
+  @IsEmail()
+  email: string;
+
   @IsNotEmpty()
   @IsString()
   userId: string;
 
-  @IsEmail()
-  email: string;
+  @IsNotEmpty()
+  @IsString()
+  id: string;
 }
+
 export class CreateFolderDto {
   @IsNotEmpty()
   @IsString()
