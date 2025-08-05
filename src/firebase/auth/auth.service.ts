@@ -8,7 +8,9 @@ export class FirebaseAuthService {
     @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: admin.app.App,
   ) {}
 
-  public async getUsersFromEmails(emails?: string[]): Promise<string[]> {
+  public async getUsersFromEmails(
+    emails?: string[],
+  ): Promise<{ userId: string; email: string }[]> {
     if (!emails || emails.length === 0) return [];
 
     const auth = this.firebaseAdmin.auth();
@@ -25,6 +27,6 @@ export class FirebaseAuthService {
     // Filter out nulls and return only the uid
     return users
       .filter((user): user is admin.auth.UserRecord => user !== null)
-      .map((user) => user.uid);
+      .map((user) => ({ userId: user.uid, email: user.email! }));
   }
 }

@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Firestore } from 'firebase-admin/firestore';
-import { CreateFolderDto } from './dto/create-folder.dto';
 
 import * as admin from 'firebase-admin';
+import { Collaborator, FirebaseFolderSchema } from 'types';
 
 @Injectable()
 export class FirebaseFoldersService {
@@ -16,15 +16,13 @@ export class FirebaseFoldersService {
     return this.firebaseAdmin.firestore();
   }
 
-  public async createFolder(createFolderDto: CreateFolderDto) {
+  public async createFolder(createFolderDto: FirebaseFolderSchema) {
     const docRef = this.firestore.collection(this.collectionName).doc();
-    console.log('docRef', docRef);
     const folderData = {
       id: docRef.id,
       ...createFolderDto,
     };
 
-    console.log('folderData', folderData);
     await docRef.set(folderData);
     return folderData;
   }
@@ -65,5 +63,44 @@ export class FirebaseFoldersService {
       id: doc.id,
       ...doc.data(),
     }));
+  }
+
+  public async moveFolder(folderId: string, newParentId: string) {
+    const folderRef = this.firestore
+      .collection(this.collectionName)
+      .doc(folderId);
+    const folderSnapshot = await folderRef.get();
+
+    if (!folderSnapshot.exists) {
+      throw new Error(`Folder with ID ${folderId} does not exist.`);
+    }
+
+    await folderRef.update({ parentId: newParentId });
+
+    const updatedFolder = (await folderRef.get()).data();
+    return updatedFolder;
+  }
+  public async editFolder(
+    folderId: string,
+    name: string,
+    collaborators: Collaborator[],
+  ) {
+    const folderRef = this.firestore
+      .collection(this.collectionName)
+      .doc(folderId);
+
+    const folderSnapshot = await folderRef.get();
+
+    if (!folderSnapshot.exists) {
+      throw new Error(`Folder with ID ${folderId} does not exist.`);
+    }
+
+    await folderRef.update({
+      name,
+      collaborators,
+    });
+
+    const updatedSnapshot = await folderRef.get();
+    return updatedSnapshot.data();
   }
 }

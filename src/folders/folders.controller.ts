@@ -1,5 +1,8 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
-import { CreateFolderDto } from '@firebase/folders/dto/create-folder.dto';
+import { Controller, Get, Post, Body, Query, Patch } from '@nestjs/common';
+import {
+  CreateFolderDto,
+  EditFolderDto,
+} from '@firebase/folders/dto/folder.dto';
 import { FirebaseFoldersService } from '@firebase/folders/folders.service';
 import { FirebaseAuthService } from '@firebase/auth/auth.service';
 
@@ -13,15 +16,17 @@ export class FoldersController {
   @Post('create-folder')
   public async create(@Body() folderDto: CreateFolderDto) {
     try {
-      const userIds = await this.authService.getUsersFromEmails(
-        folderDto.collaboratorEmails,
-      );
+      const transformedCollaborators =
+        await this.authService.getUsersFromEmails(
+          folderDto.collaborators?.map((collaborator) => collaborator.email),
+        );
 
-      delete folderDto.collaboratorEmails;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { collaborators, ...rest } = folderDto;
 
       const adjustedFolderDto = {
-        ...folderDto,
-        collaboratorsUserIds: userIds,
+        ...rest,
+        collaborators: transformedCollaborators,
       };
 
       return await this.foldersService.createFolder(adjustedFolderDto);
@@ -39,12 +44,27 @@ export class FoldersController {
     @Query('userId') userId: string,
     @Query('parentId') parentId: string,
   ) {
-    console.log(userId, parentId);
     return await this.foldersService.getFoldersByParentId(parentId, userId);
+  }
+
+  @Patch('move-folder')
+  async moveFolder(
+    @Body() body: { folderId: string; newParentId: string; userId: string },
+  ) {
+    return this.foldersService.moveFolder(body.folderId, body.newParentId);
+  }
+
+  @Patch('edit-folder')
+  async editFolder(@Body() folderDto: EditFolderDto) {
+    return this.foldersService.editFolder(
+      folderDto.id,
+      folderDto.name,
+      folderDto.collaborators,
+    );
   }
 
   @Get('test')
   test() {
-    return { message: 'sadasdasdasd' };
+    return { message: 'test' };
   }
 }
