@@ -50,12 +50,18 @@ export class FoldersController {
   public async findRootAll(@Query('userId') userId: string) {
     return await this.foldersService.getRootFolders(userId);
   }
+
   @Get('get-nested-folders')
   public async findAll(
     @Query('userId') userId: string,
     @Query('parentId') parentId: string,
   ) {
     return await this.foldersService.getFoldersByParentId(parentId, userId);
+  }
+
+  @Get('get-collab-folders')
+  public async findCollab(@Query('userId') userId: string) {
+    return await this.foldersService.getCollaboratedFolders(userId);
   }
 
   @Patch('move-folder')

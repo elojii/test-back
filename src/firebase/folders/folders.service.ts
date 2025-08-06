@@ -54,15 +54,26 @@ export class FirebaseFoldersService {
   }
 
   public async getCollaboratedFolders(userId: string) {
-    const snapshot = await this.firestore
-      .collection(this.collectionName)
-      .where('collaboratorUserIds', 'array-contains', userId)
-      .get();
+    const snapshot = await this.firestore.collection(this.collectionName).get();
 
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const folders = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+
+        return {
+          id: doc.id,
+          ...data,
+        } as { id: string; collaborators: Collaborator[] };
+      })
+      .filter(
+        (folder) =>
+          Array.isArray(folder.collaborators) &&
+          folder.collaborators.some((collab) => collab.userId === userId),
+      );
+
+    console.log(folders);
+
+    return folders;
   }
 
   public async moveFolder(folderId: string, newParentId: string) {

@@ -1,10 +1,10 @@
-import { TokenService } from '@firebase/token/token.service';
+import { FirebaseTokenService } from '@firebase/token/token.service';
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private readonly tokenService: TokenService) {}
+  constructor(private readonly tokenService: FirebaseTokenService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers.authorization;
