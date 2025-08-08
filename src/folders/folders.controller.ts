@@ -1,46 +1,42 @@
 import {
   Controller,
   Get,
-  Post,
+  // Post,
   Body,
   Query,
   Patch,
   Delete,
   Param,
+  Post,
 } from '@nestjs/common';
-import {
-  CreateFolderDto,
-  EditFolderDto,
-} from '@firebase/folders/dto/folder.dto';
-import { FirebaseFoldersService } from '@firebase/folders/folders.service';
-import { FirebaseAuthService } from '@firebase/auth/auth.service';
+import { CreateFolderDto, EditFolderDto } from '@mongo/folders/dto/folder.dto';
+import { MongoFoldersService } from '@mongo/folders/folders.service';
+import { MongoUserService } from '@mongo/user/user.service';
 
 @Controller('folders')
 export class FoldersController {
   constructor(
-    private readonly foldersService: FirebaseFoldersService,
-    private readonly authService: FirebaseAuthService,
+    private readonly foldersService: MongoFoldersService,
+    private readonly userService: MongoUserService,
   ) {}
 
   @Post('create-folder')
   public async create(@Body() folderDto: CreateFolderDto) {
     try {
-      console.log('folderDto', folderDto.collaborators);
-
-      const transformedCollaborators =
-        await this.authService.getCollaboratorsFromEmails(
-          folderDto.collaborators?.map((collaborator) => collaborator.email),
+      const filteredCollaborators =
+        await this.userService.getCollaboratorsFromEmails(
+          folderDto.collaborators.map((c) => c.email),
         );
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { collaborators, ...rest } = folderDto;
 
-      const adjustedFolderDto = {
+      const folderInput = {
         ...rest,
-        collaborators: transformedCollaborators,
+        collaborators: filteredCollaborators,
       };
 
-      return await this.foldersService.createFolder(adjustedFolderDto);
+      return await this.foldersService.createFolder(folderInput);
     } catch (error) {
       console.error(error);
     }

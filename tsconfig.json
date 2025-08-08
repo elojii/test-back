@@ -15,9 +15,9 @@
     "outDir": "./dist",
     "baseUrl": "./src",
     "paths": {
-      "@firebase/*": ["firebase/*"],
+      "@mongo/*": ["mongo/*"],
       "@folders/*": ["folders/*"],
-      "@filestack/*": ["filestack/*"]
+      "@schemas/*": ["schemas/*"],
     },
     "incremental": true,
     "skipLibCheck": true,

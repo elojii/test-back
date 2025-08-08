@@ -1,19 +1,17 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { FirebaseModule } from './firebase/firebase.module';
 import { ConfigModule } from '@nestjs/config';
 import { FoldersModule } from './folders/folders.module';
 import { AuthModule } from './auth/auth.module';
-import { AuthMiddleware } from 'auth/auth.middleware';
-import { FirebaseTokenService } from '@firebase/token/token.service';
+import { MongoModule } from '@mongo/mongo.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    FirebaseModule,
+    MongoModule,
     FoldersModule,
     AuthModule,
   ],
