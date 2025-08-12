@@ -1,6 +1,6 @@
-import { Document } from 'mongoose';
+import { Types } from 'mongoose';
 
 export interface Auth {
-  email: string;
-  userId: string;
+  refreshToken: string;
+  userId: Types.ObjectId;
 }

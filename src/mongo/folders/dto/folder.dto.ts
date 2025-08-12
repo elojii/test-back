@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { Types } from 'mongoose';
 
 export class Collaborator {
   @IsEmail()
@@ -25,13 +26,9 @@ export class CreateFolderDto {
   @IsString()
   name: string;
 
-  @IsNotEmpty()
-  @IsString()
-  userId: string;
-
   @IsOptional()
   @IsString()
-  parentId: string | null;
+  parentId: Types.ObjectId | null;
 
   @IsArray()
   @IsString({ each: true })
@@ -43,7 +40,7 @@ export class CreateFolderDto {
 export class EditFolderDto {
   @IsNotEmpty()
   @IsString()
-  id: string;
+  id: Types.ObjectId;
 
   @IsNotEmpty()
   @IsString()

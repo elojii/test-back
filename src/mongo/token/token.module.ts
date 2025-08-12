@@ -3,6 +3,7 @@ import { MongoTokenService } from './token.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongoUserModule } from '@mongo/user/user.module';
+import { MongoAuthModule } from '@mongo/auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { MongoUserModule } from '@mongo/user/user.module';
       }),
     }),
     MongoUserModule,
+    MongoAuthModule,
   ],
   providers: [MongoTokenService],
   exports: [MongoTokenService],

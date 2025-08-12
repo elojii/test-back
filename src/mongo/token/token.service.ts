@@ -4,6 +4,7 @@ import { JwtAccessTokenPayload, JwtRefreshTokenPayload } from './jwt.interface';
 import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
 import { MongoUserService } from '@mongo/user/user.service';
+import { MongoAuthService } from '@mongo/auth/auth.service';
 
 @Injectable()
 export class MongoTokenService {
@@ -11,6 +12,7 @@ export class MongoTokenService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly mongoUserService: MongoUserService,
+    private readonly mongoAuthService: MongoAuthService,
   ) {}
 
   public createAccessToken(
@@ -24,16 +26,29 @@ export class MongoTokenService {
     });
   }
 
-  public verifyAccessToken(token: string): JwtAccessTokenPayload | null | void {
-    try {
-      const decoded = this.jwtService.verify<JwtAccessTokenPayload>(token, {
-        secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-      });
+  public verifyAccessToken(token: string): JwtAccessTokenPayload | null {
+    const decoded = this.jwtService.verify<JwtAccessTokenPayload>(token, {
+      secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+    });
 
-      return decoded;
-    } catch {
-      console.log('verifyAccessToken error');
-    }
+    return decoded;
+  }
+
+  public async refreshAccessToken(refreshToken: string) {
+    const { userId } =
+      await this.jwtService.verifyAsync<JwtRefreshTokenPayload>(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      });
+    const user = await this.mongoUserService.findOneById({
+      _id: userId,
+    });
+
+    if (!user) throw new UnauthorizedException();
+
+    const authedUser = { userId: user._id, email: user.email };
+    const newAccessToken = this.createAccessToken(authedUser);
+
+    return { newAccessToken, user: authedUser };
   }
 
   public createRefreshToken(
@@ -56,31 +71,49 @@ export class MongoTokenService {
     );
   }
 
-  public verifyRefreshToken(token: string): JwtRefreshTokenPayload | null {
+  public async verifyRefreshToken(
+    token: string,
+  ): Promise<JwtRefreshTokenPayload | null> {
     try {
       const decoded = this.jwtService.verify<JwtRefreshTokenPayload>(token, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
+
+      if (!decoded) throw new UnauthorizedException();
+
+      const { userId } = decoded;
+
+      console.log('token from the client', token);
+
+      const authedUser = await this.mongoAuthService.validateUserRefreshToken({
+        userId,
+        refreshToken: token,
+      });
+      if (!authedUser) throw new UnauthorizedException();
+
+      const { userId: authUserId, refreshToken: authRefreshToken } = authedUser;
+
+      if (userId !== authUserId || authRefreshToken !== token)
+        throw new UnauthorizedException();
+
       return decoded;
     } catch {
       return null;
     }
   }
 
-  public async refreshAccessToken(refreshToken: string) {
-    const { userId } =
-      await this.jwtService.verifyAsync<JwtRefreshTokenPayload>(refreshToken, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-      });
-    const user = await this.mongoUserService.findOneById({
-      _id: userId,
+  public issueTokens(user: JwtAccessTokenPayload) {
+    const { email, userId } = user;
+
+    const newAccessToken = this.createAccessToken({
+      userId,
+      email,
     });
 
-    if (!user) throw new UnauthorizedException();
+    const newRefreshToken = this.createRefreshToken({
+      userId,
+    });
 
-    const authedUser = { userId: user._id, email: user.email };
-    const newAccessToken = this.createAccessToken(authedUser);
-
-    return { newAccessToken, user: authedUser };
+    return { newAccessToken, newRefreshToken };
   }
 }

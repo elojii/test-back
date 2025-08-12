@@ -10,5 +10,6 @@ import { MongoUserModule } from '@mongo/user/user.module';
   imports: [MongoTokenModule, MongoAuthModule, MongoUserModule],
   providers: [GoogleStrategy, AuthService],
   controllers: [AuthController],
+  exports: [MongoTokenModule],
 })
 export class AuthModule {}

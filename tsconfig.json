@@ -18,6 +18,7 @@
       "@mongo/*": ["mongo/*"],
       "@folders/*": ["folders/*"],
       "@schemas/*": ["schemas/*"],
+      "@decorators/*": ["decorators/*"],
     },
     "incremental": true,
     "skipLibCheck": true,

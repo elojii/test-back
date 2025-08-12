@@ -18,14 +18,23 @@ export class MongoAuthService {
     userId: Types.ObjectId;
     refreshToken: string;
   }) {
-    console.log({
-      userId,
-      refreshToken,
-    });
     return this.AuthModel.findOneAndUpdate(
       { userId },
       { refreshToken },
       { upsert: true, new: true },
     );
+  }
+
+  public async validateUserRefreshToken({
+    userId,
+    refreshToken,
+  }: {
+    userId: Types.ObjectId;
+    refreshToken: string;
+  }) {
+    return await this.AuthModel.findOne({
+      userId,
+      refreshToken,
+    }).lean();
   }
 }

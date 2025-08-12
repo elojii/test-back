@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongoFoldersService } from './folders.service';
-import { FolderSchema } from 'schemas/folders/folder.schema';
+import { FolderSchema } from '@schemas/folder.schema';
 import { FOLDER_COLLECTION_NAME } from './folders.constants';
 
 import { MongooseModule } from '@nestjs/mongoose';

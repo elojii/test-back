@@ -12,7 +12,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  // Include refresh token request parameters here
   authorizationParams(): Record<string, string> {
     return {
       access_type: 'offline',

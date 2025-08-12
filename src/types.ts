@@ -1,15 +1,5 @@
-// export interface FirebaseFolderSchema {
-//   name: string;
-//   collaborators: Collaborator[];
-//   userId: string;
-//   parentId: string | null;
-// }
-
-// export interface Collaborator {
-//   id: string;
-//   userId: string;
-//   email: string;
-// }
+import { JwtAccessTokenPayload } from '@mongo/token';
+import type { Request } from 'express';
 
 export interface GoogleUser {
   accessToken: string;
@@ -39,4 +29,8 @@ export interface GoogleUser {
       email_verified: boolean;
     };
   };
+}
+
+export interface RequestWithUser extends Request {
+  user: JwtAccessTokenPayload;
 }

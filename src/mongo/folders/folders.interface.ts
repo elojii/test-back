@@ -1,6 +1,6 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
-export interface Collaborator {
+export interface CollaboratorInterface {
   email: string;
   userId: string;
   id: string;
@@ -8,8 +8,15 @@ export interface Collaborator {
 
 export interface Folders extends Document {
   name: string;
-  parentId?: string;
+  parentId?: Types.ObjectId;
   userId: string;
-  collaborators: Collaborator[];
+  collaborators: CollaboratorInterface[];
   createdAt: Date;
+}
+
+export interface CreateFolderInput {
+  userId: Types.ObjectId;
+  name: string;
+  description?: string;
+  collaborators: CollaboratorInterface[];
 }

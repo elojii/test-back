@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongoAuthService } from './auth.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AUTH_COLLECTION_NAME } from './auth.constants';
-import { AuthSchema } from '@schemas/auth/auth.schema';
+import { AuthSchema } from '@schemas/auth.schema';
 
 @Module({
   imports: [

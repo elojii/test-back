@@ -9,20 +9,27 @@ import {
   Param,
   Post,
 } from '@nestjs/common';
-import { CreateFolderDto, EditFolderDto } from '@mongo/folders/dto/folder.dto';
 import { MongoFoldersService } from '@mongo/folders/folders.service';
 import { MongoUserService } from '@mongo/user/user.service';
+import { User } from '@decorators/request';
+import type { JwtAccessTokenPayload } from '@mongo/token';
+import { CreateFolderDto, EditFolderDto } from '@mongo/folders';
 
 @Controller('folders')
 export class FoldersController {
   constructor(
-    private readonly foldersService: MongoFoldersService,
+    private readonly mongoFoldersService: MongoFoldersService,
     private readonly userService: MongoUserService,
   ) {}
 
   @Post('create-folder')
-  public async create(@Body() folderDto: CreateFolderDto) {
+  public async createFolder(
+    @User() user: JwtAccessTokenPayload,
+    @Body() folderDto: CreateFolderDto,
+  ) {
     try {
+      const userId = user.userId;
+
       const filteredCollaborators =
         await this.userService.getCollaboratorsFromEmails(
           folderDto.collaborators.map((c) => c.email),
@@ -33,43 +40,50 @@ export class FoldersController {
 
       const folderInput = {
         ...rest,
+        userId,
         collaborators: filteredCollaborators,
       };
 
-      return await this.foldersService.createFolder(folderInput);
+      return await this.mongoFoldersService.createFolder(folderInput);
     } catch (error) {
       console.error(error);
     }
   }
 
   @Get('get-root-folders')
-  public async findRootAll(@Query('userId') userId: string) {
-    return await this.foldersService.getRootFolders(userId);
+  public async findRootAll(@User() user: JwtAccessTokenPayload) {
+    return await this.mongoFoldersService.getRootFolders(user.userId);
   }
 
   @Get('get-nested-folders')
   public async findAll(
-    @Query('userId') userId: string,
-    @Query('parentId') parentId: string,
+    @User() user: JwtAccessTokenPayload,
+    @Query('folderId') folderId: string,
   ) {
-    return await this.foldersService.getFoldersByParentId(parentId, userId);
+    return await this.mongoFoldersService.getFoldersByParentId(
+      folderId,
+      user.userId,
+    );
   }
 
   @Get('get-collab-folders')
-  public async findCollab(@Query('userId') userId: string) {
-    return await this.foldersService.getCollaboratedFolders(userId);
+  public async findCollab(@User() user: JwtAccessTokenPayload) {
+    return await this.mongoFoldersService.getCollaboratedFolders(user.userId);
   }
 
   @Patch('move-folder')
   public async moveFolder(
-    @Body() body: { folderId: string; newParentId: string; userId: string },
+    @Body() body: { folderId: string; newParentId: string },
   ) {
-    return this.foldersService.moveFolder(body.folderId, body.newParentId);
+    return await this.mongoFoldersService.moveFolder(
+      body.folderId,
+      body.newParentId,
+    );
   }
 
   @Patch('edit-folder')
   public async editFolder(@Body() folderDto: EditFolderDto) {
-    return this.foldersService.editFolder(
+    return await this.mongoFoldersService.editFolder(
       folderDto.id,
       folderDto.name,
       folderDto.collaborators,
@@ -78,7 +92,7 @@ export class FoldersController {
 
   @Delete('delete/:id')
   public async deleteFolder(@Param('id') id: string) {
-    return this.foldersService.deleteFolder(id);
+    return await this.mongoFoldersService.deleteFolder(id);
   }
 
   @Get('test')

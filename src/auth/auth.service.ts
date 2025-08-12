@@ -19,29 +19,20 @@ export class AuthService {
 
     const existingUser = await this.mongoUserService.upsertByEmail(email);
 
-    const jwtAccessTokenPayload = {
-      email,
-      userId: existingUser._id,
-    };
-    const jwtAccessToken = this.mongoTokenService.createAccessToken(
-      jwtAccessTokenPayload,
-    );
-
-    const jwtRefreshTokenPayload = {
-      userId: existingUser._id,
-    };
-    const jwtRefreshToken = this.mongoTokenService.createRefreshToken(
-      jwtRefreshTokenPayload,
-    );
+    const { newAccessToken, newRefreshToken } =
+      this.mongoTokenService.issueTokens({
+        email,
+        userId: existingUser._id,
+      });
 
     await this.mongoAuthService.upsertAuthInstance({
-      refreshToken: jwtRefreshToken,
+      refreshToken: newRefreshToken,
       userId: existingUser._id,
     });
 
     return {
-      accessToken: jwtAccessToken,
-      refreshToken: jwtRefreshToken,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
       user: existingUser,
     };
   }
