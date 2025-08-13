@@ -44,6 +44,17 @@ $ yarn run start:dev
 $ yarn run start:prod
 ```
 
+## Add API URLs
+MONGODB_URI=""
+
+GOOGLE_CLIENT_ID=""
+
+GOOGLE_CLIENT_SECRET=""
+
+JWT_ACCESS_SECRET=""
+
+JWT_REFRESH_SECRET=""
+
 ## Run tests
 
 ```bash
