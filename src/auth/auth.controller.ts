@@ -17,7 +17,17 @@ import { ConfigService } from '@nestjs/config';
 import { JwtAccessTokenPayload } from '@mongo/token';
 import { MongoUserService } from '@mongo/user/user.service';
 import { TokenExpiredError } from '@nestjs/jwt';
+import {
+  ApiCookieAuth,
+  ApiFoundResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -30,11 +40,17 @@ export class AuthController {
 
   @Get()
   @UseGuards(GoogleOAuthGuard)
+  @ApiOperation({ summary: 'Google oauth handshake' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Server error' })
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async googleAuth(@Req() req: Request) {}
 
   @Get('google-redirect')
   @UseGuards(GoogleOAuthGuard)
+  @ApiOperation({ summary: 'Redirect from google' })
+  @ApiFoundResponse({ description: 'Redirect to Google login page' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized request' })
   public async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
     try {
       const authedUser = await this.authService.googleUserLogin(
@@ -54,92 +70,26 @@ export class AuthController {
 
       res.cookie('refresh_token', authedUser.refreshToken, {
         httpOnly: true,
-        secure: true, // set to true in production
+        secure: true,
         sameSite: 'lax',
         maxAge: REFRESH_TOKEN_MAX_AGE,
       });
 
-      return res.redirect('http://localhost:5173/dashboard');
+      return res.redirect(
+        `${this.configService.get<string>('FRONTEND_URL')}/dashboard`,
+      );
     } catch (error) {
       console.error(error);
     }
   }
 
-  // @Get('login')
-  // async login(@Req() req: Request, @Res() res: Response) {
-  //   const accessToken = req.cookies['access_token'] as string | undefined;
-  //   const refreshToken = req.cookies['refresh_token'] as string | undefined;
-
-  //   if (!accessToken && !refreshToken) {
-  //     return res.status(401).json({ message: 'Unauthorized' });
-  //   }
-
-  //   // Helper to issue new tokens, set cookies, and return response
-  //   const issueTokensAndRespond = async (user: JwtAccessTokenPayload) => {
-  //     const { newAccessToken, newRefreshToken } =
-  //       this.tokenService.issueTokens(user);
-
-  //     await this.mongoAuthService.upsertAuthInstance({
-  //       refreshToken: newRefreshToken,
-  //       userId: user.userId,
-  //     });
-
-  //     res.cookie('access_token', newAccessToken, {
-  //       httpOnly: true,
-  //       sameSite: 'lax',
-  //       maxAge: ACCESS_TOKEN_MAX_AGE,
-  //     });
-
-  //     res.cookie('refresh_token', newRefreshToken, {
-  //       httpOnly: true,
-  //       sameSite: 'lax',
-  //       maxAge: REFRESH_TOKEN_MAX_AGE,
-  //     });
-
-  //     return res.json({
-  //       user,
-  //       accessTokenExpiresIn: ACCESS_TOKEN_MAX_AGE,
-  //     });
-  //   };
-
-  //   try {
-  //     if (accessToken) {
-  //       const user = this.tokenService.verifyAccessToken(accessToken);
-  //       if (user) {
-  //         // Issue new tokens even if access token is valid
-  //         return await issueTokensAndRespond(user);
-  //       }
-  //     }
-
-  //     if (refreshToken) {
-  //       const authData =
-  //         await this.tokenService.verifyRefreshToken(refreshToken);
-  //       if (!authData) throw new UnauthorizedException();
-
-  //       const userId = authData.userId;
-
-  //       const user = await this.mongoUserService.findOneById({
-  //         _id: userId,
-  //       });
-
-  //       if (!user) throw new UnauthorizedException();
-
-  //       const userInfo = {
-  //         userId: user._id,
-  //         email: user.email,
-  //       };
-
-  //       return await issueTokensAndRespond(userInfo);
-  //     }
-
-  //     return res.status(401).json({ message: 'Unauthorized' });
-  //   } catch (error) {
-  //     console.error(error);
-  //     return res.status(401).json({ message: 'Unauthorized' });
-  //   }
-  // }
-
   @Get('login')
+  @ApiCookieAuth('access_token')
+  @ApiCookieAuth('refresh_token')
+  @ApiOperation({ summary: 'Refresh user session' })
+  @ApiOkResponse({ description: 'Successfully issued new tokens' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiInternalServerErrorResponse({ description: 'Server error' })
   async login(@Req() req: Request, @Res() res: Response) {
     const accessToken = req.cookies['access_token'] as string | undefined;
     const refreshToken = req.cookies['refresh_token'] as string | undefined;
@@ -148,14 +98,9 @@ export class AuthController {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Helper to issue new tokens, set cookies, and return response
     const issueTokensAndRespond = async (user: JwtAccessTokenPayload) => {
       const { newAccessToken, newRefreshToken } =
         this.tokenService.issueTokens(user);
-
-      console.log('issue new tokens', newRefreshToken);
-
-      console.log('issue token to this user: ', user);
 
       await this.mongoAuthService.upsertAuthInstance({
         refreshToken: newRefreshToken,
@@ -189,7 +134,6 @@ export class AuthController {
             return await issueTokensAndRespond(user);
           }
         } catch (error) {
-          console.log('error', error);
           if (!(error instanceof TokenExpiredError)) {
             return res
               .status(401)
@@ -201,8 +145,6 @@ export class AuthController {
       if (refreshToken) {
         const authData =
           await this.tokenService.verifyRefreshToken(refreshToken);
-
-        console.log('verified refreshtoken', authData);
 
         if (!authData) throw new UnauthorizedException();
 

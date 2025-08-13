@@ -83,8 +83,6 @@ export class MongoTokenService {
 
       const { userId } = decoded;
 
-      console.log('token from the client', token);
-
       const authedUser = await this.mongoAuthService.validateUserRefreshToken({
         userId,
         refreshToken: token,

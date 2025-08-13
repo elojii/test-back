@@ -9,8 +9,6 @@ export class CookieAuthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const accessToken = req.cookies?.['access_token'] as string;
 
-    console.log('middleware');
-
     if (!accessToken) {
       return res.status(401).json({ message: 'No access token provided' });
     }
@@ -25,14 +23,8 @@ export class CookieAuthMiddleware implements NestMiddleware {
       req['user'] = user;
 
       next();
-    } catch (error) {
-      if (error instanceof Error) {
-        return res
-          .status(401)
-          .json({ message: 'Invalid or expired token', error: error.message });
-      } else {
-        return res.status(401).json({ message: 'Invalid or expired token' });
-      }
+    } catch {
+      return res.status(401).json({ message: 'Invalid or expired token' });
     }
   }
 }

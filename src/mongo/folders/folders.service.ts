@@ -32,7 +32,6 @@ export class MongoFoldersService {
     parentId: string,
     userId: Types.ObjectId,
   ): Promise<Folders[]> {
-    console.log(parentId);
     return this.FolderModel.find({ parentId, userId }).lean();
   }
 
