@@ -2,13 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "src/main.js",
-      "use": "@vercel/node"
+      "src": "api/index.ts",
+      "use": "@vercel/node",
+      "config": { "maxLambdaSize": "50mb" }
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "src/main.js", "methods": [
-        "GET", "POST", "PUT", "PATCH", "DELETE"
-    ] }
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.ts"
+    }
   ]
 }
