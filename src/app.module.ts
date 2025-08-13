@@ -31,6 +31,7 @@ export class AppModule implements NestModule {
     consumer
       .apply(CookieAuthMiddleware)
       .exclude(
+        { path: '', method: RequestMethod.ALL }, // 👈 root path
         { path: 'auth', method: RequestMethod.ALL },
         { path: 'auth/login', method: RequestMethod.ALL },
         { path: 'auth/google-redirect', method: RequestMethod.ALL },
